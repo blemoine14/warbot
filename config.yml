@@ -1,0 +1,15 @@
+Name: team
+IconPath: coeur.png
+SoundPath: MyTeam.wav
+Description: |
+    De l'amour dans tes dents
+BrainsPackage: myteam
+AgentsBrainClasses:
+    WarBase: WarBaseBrainController
+    WarExplorer: WarExplorerBrainController
+    WarLight: WarLightBrainController
+    WarHeavy: WarHeavyBrainController
+    WarRocketLauncher: WarRocketLauncherBrainController
+    WarKamikaze: WarKamikazeBrainController
+    WarEngineer: WarEngineerBrainController
+    WarTurret: WarTurretBrainController
