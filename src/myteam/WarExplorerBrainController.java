@@ -7,7 +7,6 @@ import edu.warbot.agents.percepts.WarAgentPercept;
 import edu.warbot.brains.WarBrain;
 import edu.warbot.brains.brains.WarExplorerBrain;
 import edu.warbot.communications.WarMessage;
-import java.awt.Color;
 import java.util.List;
 import java.util.Stack;
 
@@ -17,7 +16,7 @@ public abstract class WarExplorerBrainController extends WarExplorerBrain {
     boolean waitAnswer = false;
     private int timeOut = 5;
     private int timeWaited = 0;
-    private WarMessage targetM;
+    private int targetId;
     WTask ctask;
     Stack<WTask> ptask = new Stack<>();
 
@@ -29,40 +28,52 @@ public abstract class WarExplorerBrainController extends WarExplorerBrain {
         String exec(WarBrain bc){
             WarExplorerBrainController me = (WarExplorerBrainController) bc;
             if(me.timeWaited < me.timeOut){
-                me.setDebugString("delivering food");
-                me.reply(me.targetM, WarUtilMessage.WHERE_ARE_YOU, "");
-                List<WarMessage> messages = me.getMessages();
-                WarMessage rep;
-                for(WarMessage message : messages){
-                    if(message.getMessage().equals(WarUtilMessage.IM_HERE)){
-                        rep = message;
-                        me.targetM = rep;
+                if(me.getNbElementsInBag() > 0){
+                    me.setDebugString("delivering food");
+                    me.sendMessage(me.targetId, WarUtilMessage.WHERE_ARE_YOU, "");
+                    List<WarMessage> messages = me.getMessages();
+                    boolean messageReceive = false;
+                    for(WarMessage message : messages){
+                        if(me.targetId == message.getSenderID()){
+                            messageReceive = true;
+                            if(message.getMessage().equals(WarUtilMessage.IM_HERE)){
+                                me.timeWaited = 0;
+                                if(message.getDistance() < MovableWarAgent.MAX_DISTANCE_GIVE){
+                                    me.setIdNextAgentToGive(me.targetId);
+                                    return me.give();
+                                }
+                                else{
+                                    me.setHeading(message.getAngle());
+                                }
+                            }
+                            if(message.getMessage().equals(WarUtilMessage.IM_FINE)){
+                                me.dispo = true;
+                                me.ctask = me.ptask.pop();
+                            }
+                        }
                     }
-                }
-                if(me.targetM != null){
-                    me.timeWaited = 0;
-                    if(me.targetM.getDistance() < MovableWarAgent.MAX_DISTANCE_GIVE){
-                        me.setIdNextAgentToGive(me.targetM.getSenderID());
-                        me.dispo = true;
-                        me.ctask = me.ptask.pop();
-                        return me.give();
+                    if(!messageReceive){
+                        me.timeWaited++;
                     }
-                    me.setHeading(me.targetM.getAngle());
                 }
                 else{
-                    me.timeWaited++;
+                    me.setDebugString("no more food");
+                    me.sendMessage(me.targetId, WarUtilMessage.QUIT_ENROLMENT,"");
+                    me.ctask = me.ptask.pop();
+                    me.dispo = true;
                 }
-                
-                if(me.isBlocked())
-                    me.setRandomHeading();
-
-                return me.move();
             }
             else{
+                me.setDebugString("time out");
+                me.sendMessage(me.targetId, WarUtilMessage.QUIT_ENROLMENT,"");
                 me.ctask = me.ptask.pop();
                 me.dispo = true;
-                return me.move();
             }
+            
+            if(me.isBlocked())
+                me.setRandomHeading();
+
+            return me.move();
         }
     };
 
@@ -77,7 +88,7 @@ public abstract class WarExplorerBrainController extends WarExplorerBrain {
             }
 
             //me.setDebugStringColor(Color.green.darker());
-            //me.setDebugString("Returning Food");
+            me.setDebugString("Returning Food");
 
             List<WarAgentPercept> basePercepts = me.getPerceptsAlliesByType(WarAgentType.WarBase);
 
@@ -93,7 +104,6 @@ public abstract class WarExplorerBrainController extends WarExplorerBrain {
 
                 if(base.getDistance() > MovableWarAgent.MAX_DISTANCE_GIVE){
                     me.setHeading(base.getAngle());
-                    return me.move();
                 }else{
                     me.setIdNextAgentToGive(base.getID());
                     return me.give();
@@ -111,15 +121,14 @@ public abstract class WarExplorerBrainController extends WarExplorerBrain {
         String exec(WarBrain bc){
             WarExplorerBrainController me = (WarExplorerBrainController) bc;
             if(me.isBagFull()){
-
                 me.ctask = returnFoodTask;
-                return(null);
+                return me.idle();
             }
 
             
 
             //me.setDebugStringColor(Color.BLACK);
-            //me.setDebugString("Searching food");
+            me.setDebugString("Searching food");
 
             WarAgentPercept foodPercept = WarUtilAction.getperceptFood(me);
 
@@ -214,11 +223,11 @@ public abstract class WarExplorerBrainController extends WarExplorerBrain {
     private void respondToOffer(WarMessage message){
         if(message.getMessage().equals(WarUtilMessage.NEED_SOMEONE)){
             this.setDebugString("someone needs me");
-            //if(this.getNbElementsInBag()>0){
+            if(this.getNbElementsInBag()>0){
                 this.reply(message, WarUtilMessage.DISPO, "");
                 this.dispo = false;
                 this.waitAnswer = true;
-            //}
+            }
         }
     }
     
@@ -230,7 +239,7 @@ public abstract class WarExplorerBrainController extends WarExplorerBrain {
                 case WarUtilMessage.NEED_HEALTH :
                     this.ptask.add(this.ctask);
                     this.ctask = giveFood;
-                    this.targetM = message;
+                    this.targetId = message.getSenderID();
                     break;
                 default :
                     break;

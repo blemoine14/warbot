@@ -121,13 +121,24 @@ public abstract class WarEngineerBrainController extends WarEngineerBrain {
             
             
             
-            if(me.getHealth() > me.getMaxHealth() * 0.7){
+            
+            if(me.getHealth() > me.getMaxHealth() * 0.8){
+                me.broadcastMessageToAll(WarUtilMessage.IM_FINE, "");
                 me.ctask = getFoodTask;
-                return(null);
+                return me.idle();
             }
-
-            //me.setDebugStringColor(Color.green.darker());
-            //me.setDebugString("Go to safety");
+            
+            List<WarMessage> messages = me.getMessages();
+            for(WarMessage message : messages){
+                if(message.getMessage().equals(WarUtilMessage.WHERE_ARE_YOU)){
+                    me.reply(message, WarUtilMessage.IM_HERE, "");
+                }
+                if(message.getMessage().equals(WarUtilMessage.QUIT_ENROLMENT)){
+                    me.TimeWaited = 0;
+                    proposalSend = false;
+                    proposalAccept = false;
+                }
+            }
 
             List<WarAgentPercept> basePercepts = me.getPerceptsAlliesByType(WarAgentType.WarBase);
 
@@ -215,7 +226,7 @@ public abstract class WarEngineerBrainController extends WarEngineerBrain {
     }
     
     private String reflexe(){
-        if (this.getHealth() < this.getMaxHealth() * 0.5){
+        if (this.getHealth() < this.getMaxHealth() * 0.9){
             if(this.getNbElementsInBag()>0){
                 return ACTION_EAT;
             }
