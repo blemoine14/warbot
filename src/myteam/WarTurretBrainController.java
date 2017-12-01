@@ -1,5 +1,6 @@
 package myteam;
 
+import edu.warbot.agents.WarResource;
 import edu.warbot.agents.agents.WarTurret;
 import edu.warbot.agents.percepts.WarAgentPercept;
 import edu.warbot.brains.brains.WarTurretBrain;
@@ -19,6 +20,13 @@ public abstract class WarTurretBrainController extends WarTurretBrain {
 
     @Override
     public String action() {
+        
+         WarAgentPercept foodPercept = WarUtilAction.getperceptFood(this);
+
+        //Si il y a de la nouriture
+        if(foodPercept != null){
+            this.broadcastMessageToAll(WarUtilMessage.FOOD_FOUND, "");
+        }
 
         _sight += 90;
         if (_sight == 360) {

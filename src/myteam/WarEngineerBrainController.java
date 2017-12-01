@@ -66,7 +66,7 @@ public abstract class WarEngineerBrainController extends WarEngineerBrain {
             WarEngineerBrainController me = (WarEngineerBrainController) bc;
             
             
-            
+            me.setDebugString("sending request");
             if(proposalSend){
                 me.setDebugString("search someone ");
             }
@@ -74,71 +74,81 @@ public abstract class WarEngineerBrainController extends WarEngineerBrain {
                 me.setDebugString("found someone");
             }
             
-            
-            if(!proposalAccept){
-                if(me.TimeWaited < me.timeout){
-                    if(!proposalSend){
-                        me.broadcastMessageToAgentType(WarAgentType.WarExplorer, WarUtilMessage.NEED_SOMEONE, WarUtilMessage.NEED_HEALTH);
-                        proposalSend = true;
-                    }
-                    else{
-                        List<WarMessage> messages = me.getMessages();
-                        Double dMin = null;
-                        WarMessage explNear = null;
-                        List<WarMessage> answers = new ArrayList<>();
-                        for(WarMessage message : messages){
-                            if(message.getMessage().equals(WarUtilMessage.DISPO)){
-                                answers.add(message);
-                                if(dMin == null || dMin > message.getDistance()){
-                                    dMin = message.getDistance();
-                                    explNear = message;
-                                }
-                            }
-                        }
-                        if(explNear == null){
-                            //me.setDebugString("found no one");
-                            me.TimeWaited++;
+            if(me.TimeWaited < me.timeout){
+                if(!proposalAccept){
 
+                        if(!proposalSend){
+                            me.broadcastMessageToAgentType(WarAgentType.WarExplorer, WarUtilMessage.NEED_SOMEONE, WarUtilMessage.NEED_HEALTH);
+                            proposalSend = true;
                         }
                         else{
-                            //me.setDebugString("found someone");
-                            answers.remove(explNear);
-                            me.reply(explNear,WarUtilMessage.CHOOSE_YOU , WarUtilMessage.NEED_HEALTH);
-                            for(WarMessage message : answers){
-                                me.reply(message,WarUtilMessage.NOT_CHOOSE_YOU , "");
+                            List<WarMessage> messages = me.getMessages();
+                            Double dMin = null;
+                            WarMessage explNear = null;
+                            List<WarMessage> answers = new ArrayList<>();
+                            for(WarMessage message : messages){
+                                if(message.getMessage().equals(WarUtilMessage.DISPO)){
+                                    answers.add(message);
+                                    if(dMin == null || dMin > message.getDistance()){
+                                        dMin = message.getDistance();
+                                        explNear = message;
+                                    }
+                                }
                             }
-                            me.TimeWaited = 0;
-                            proposalAccept = true;
+                            if(explNear == null){
+                                //me.setDebugString("found no one");
+                                me.TimeWaited++;
+
+                            }
+                            else{
+                                //me.setDebugString("found someone");
+                                answers.remove(explNear);
+                                me.reply(explNear,WarUtilMessage.CHOOSE_YOU , WarUtilMessage.NEED_HEALTH);
+                                for(WarMessage message : answers){
+                                    me.reply(message,WarUtilMessage.NOT_CHOOSE_YOU , "");
+                                }
+                                me.TimeWaited = 0;
+                                proposalAccept = true;
+                            }
                         }
-                    }
                 }
                 else{
-                    me.TimeWaited = 0;
-                    proposalSend = false;
-                    proposalAccept = false;
+                    List<WarMessage> messages = me.getMessages();
+                    for(WarMessage message : messages){
+                        if(message.getMessage().equals(WarUtilMessage.WHERE_ARE_YOU)){
+                            me.reply(message, WarUtilMessage.IM_HERE, "");
+                            me.TimeWaited = 0;
+                        }
+                        if(message.getMessage().equals(WarUtilMessage.QUIT_ENROLMENT)){
+                            me.setDebugString("someone quit");
+                            me.TimeWaited = 0;
+                            proposalSend = false;
+                            proposalAccept = false;
+                        }
+                    }
+                    me.TimeWaited++;
                 }
+            }
+            else{
+                me.setDebugString("time out");
+                me.TimeWaited = 0;
+                proposalSend = false;
+                proposalAccept = false;
             }
             
             
             
             
-            if(me.getHealth() > me.getMaxHealth() * 0.8){
-                me.broadcastMessageToAll(WarUtilMessage.IM_FINE, "");
+            if(!(me.getHealth() < me.getMaxHealth() * 0.8)){
+                //me.broadcastMessageToAll(WarUtilMessage.IM_FINE, "");
+                me.TimeWaited = 0;
+                proposalSend = false;
+                proposalAccept = false;
                 me.ctask = getFoodTask;
                 return me.idle();
             }
             
-            List<WarMessage> messages = me.getMessages();
-            for(WarMessage message : messages){
-                if(message.getMessage().equals(WarUtilMessage.WHERE_ARE_YOU)){
-                    me.reply(message, WarUtilMessage.IM_HERE, "");
-                }
-                if(message.getMessage().equals(WarUtilMessage.QUIT_ENROLMENT)){
-                    me.TimeWaited = 0;
-                    proposalSend = false;
-                    proposalAccept = false;
-                }
-            }
+            
 
             List<WarAgentPercept> basePercepts = me.getPerceptsAlliesByType(WarAgentType.WarBase);
 
@@ -226,7 +236,7 @@ public abstract class WarEngineerBrainController extends WarEngineerBrain {
     }
     
     private String reflexe(){
-        if (this.getHealth() < this.getMaxHealth() * 0.9){
+        if (this.getHealth() <= this.getMaxHealth() * 0.8){
             if(this.getNbElementsInBag()>0){
                 return ACTION_EAT;
             }

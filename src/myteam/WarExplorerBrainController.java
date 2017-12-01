@@ -14,7 +14,7 @@ public abstract class WarExplorerBrainController extends WarExplorerBrain {
 	
     boolean dispo = true;
     boolean waitAnswer = false;
-    private int timeOut = 5;
+    private int timeOut = 10;
     private int timeWaited = 0;
     private int targetId;
     WTask ctask;
@@ -29,7 +29,7 @@ public abstract class WarExplorerBrainController extends WarExplorerBrain {
             WarExplorerBrainController me = (WarExplorerBrainController) bc;
             if(me.timeWaited < me.timeOut){
                 if(me.getNbElementsInBag() > 0){
-                    me.setDebugString("delivering food");
+                    //me.setDebugString("delivering food");
                     me.sendMessage(me.targetId, WarUtilMessage.WHERE_ARE_YOU, "");
                     List<WarMessage> messages = me.getMessages();
                     boolean messageReceive = false;
@@ -47,6 +47,7 @@ public abstract class WarExplorerBrainController extends WarExplorerBrain {
                                 }
                             }
                             if(message.getMessage().equals(WarUtilMessage.IM_FINE)){
+                                //me.setDebugString("he is fine");
                                 me.dispo = true;
                                 me.ctask = me.ptask.pop();
                             }
@@ -57,14 +58,14 @@ public abstract class WarExplorerBrainController extends WarExplorerBrain {
                     }
                 }
                 else{
-                    me.setDebugString("no more food");
+                    //me.setDebugString("no more food");
                     me.sendMessage(me.targetId, WarUtilMessage.QUIT_ENROLMENT,"");
                     me.ctask = me.ptask.pop();
                     me.dispo = true;
                 }
             }
             else{
-                me.setDebugString("time out");
+                //me.setDebugString("time out");
                 me.sendMessage(me.targetId, WarUtilMessage.QUIT_ENROLMENT,"");
                 me.ctask = me.ptask.pop();
                 me.dispo = true;
@@ -88,7 +89,7 @@ public abstract class WarExplorerBrainController extends WarExplorerBrain {
             }
 
             //me.setDebugStringColor(Color.green.darker());
-            me.setDebugString("Returning Food");
+            //me.setDebugString("Returning Food");
 
             List<WarAgentPercept> basePercepts = me.getPerceptsAlliesByType(WarAgentType.WarBase);
 
@@ -128,7 +129,7 @@ public abstract class WarExplorerBrainController extends WarExplorerBrain {
             
 
             //me.setDebugStringColor(Color.BLACK);
-            me.setDebugString("Searching food");
+            //me.setDebugString("Searching food");
 
             WarAgentPercept foodPercept = WarUtilAction.getperceptFood(me);
 
@@ -163,6 +164,8 @@ public abstract class WarExplorerBrainController extends WarExplorerBrain {
 
 @Override
     public String action() {
+        
+        this.setDebugString(this.timeWaited+"/"+this.timeOut+" "+this.dispo);
 
         // Develop behaviour here
         String toReturn = this.reflexe();
@@ -189,13 +192,21 @@ public abstract class WarExplorerBrainController extends WarExplorerBrain {
         }
         List<WarMessage> messages = this.getMessages();
         
-            
-        for(WarMessage message : messages){
-            if(dispo){
+        if(dispo){
+            for(WarMessage message : messages){
                 this.respondToOffer(message);
             }
-            if(waitAnswer){
-                this.beHired(message);
+        }
+        if(waitAnswer){
+            if(this.timeWaited < this.timeOut){
+                for(WarMessage message : messages){
+                    this.beHired(message);
+                }
+            }
+            else{
+                this.timeWaited = 0;
+                this.dispo = true;
+                this.waitAnswer = false;
             }
         }
         return null;
@@ -222,9 +233,10 @@ public abstract class WarExplorerBrainController extends WarExplorerBrain {
     
     private void respondToOffer(WarMessage message){
         if(message.getMessage().equals(WarUtilMessage.NEED_SOMEONE)){
-            this.setDebugString("someone needs me");
+            //this.setDebugString("someone needs me");
             if(this.getNbElementsInBag()>0){
                 this.reply(message, WarUtilMessage.DISPO, "");
+                this.targetId = message.getSenderID();
                 this.dispo = false;
                 this.waitAnswer = true;
             }
@@ -232,8 +244,9 @@ public abstract class WarExplorerBrainController extends WarExplorerBrain {
     }
     
     private void beHired(WarMessage message){
-        this.setDebugString("waiting for answer");
+        //this.setDebugString("waiting for answer");
         if(message.getMessage().equals(WarUtilMessage.CHOOSE_YOU)){
+            this.timeWaited = 0;
             this.waitAnswer=false;
             switch(message.getContent()[0]){
                 case WarUtilMessage.NEED_HEALTH :
@@ -246,7 +259,8 @@ public abstract class WarExplorerBrainController extends WarExplorerBrain {
             }
         }
         if(message.getMessage().equals(WarUtilMessage.NOT_CHOOSE_YOU)){
-            this.setDebugString("someone refuses me");
+            this.timeWaited = 0;
+            //this.setDebugString("someone refuses me");
             this.dispo=true;
             this.waitAnswer=false;
         }
