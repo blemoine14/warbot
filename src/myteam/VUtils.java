@@ -1,19 +1,21 @@
 package myteam;
 
+import edu.warbot.tools.geometry.CartesianCoordinates;
+import edu.warbot.tools.geometry.PolarCoordinates;
 import java.util.ArrayList;
 import java.util.Stack;
 
 
 public class VUtils {
 
-	public static float computeZCoordinate(Vector2 p1, Vector2 p2, Vector2 p3) {
+	public static double computeZCoordinate(Vector2 p1, Vector2 p2, Vector2 p3) {
 		return p1.x * (p2.y - p3.y) + p2.x * (p3.y - p1.y) + p3.x * (p1.y - p2.y);
 	}
 	
 	public static boolean isPointInsideTriangle(Vector2 p1, Vector2 p2, Vector2 p3, Vector2 target) {
-		float z1 = computeZCoordinate(p1, p2, target);
-		float z2 = computeZCoordinate(p2, p3, target);
-		float z3 = computeZCoordinate(p3, p1, target);
+		double z1 = computeZCoordinate(p1, p2, target);
+		double z2 = computeZCoordinate(p2, p3, target);
+		double z3 = computeZCoordinate(p3, p1, target);
 		return ((z1 > 0) && (z2 > 0) && (z3 > 0)) || ((z1 < 0) && (z2 < 0) && (z3 < 0));
 	}
 	
@@ -25,7 +27,7 @@ public class VUtils {
 	 */
 	public static Vector2 cartFromPolaire(double angle, double dist) {
 		double rad = Math.toRadians(angle);
-		return new Vector2((float) (-dist*Math.cos(rad)), (float) (dist*Math.sin(rad)));
+		return new Vector2((double) (-dist*Math.cos(rad)), (double) (dist*Math.sin(rad)));
 	}
 	
 	/**
@@ -34,9 +36,9 @@ public class VUtils {
 	 * @return
 	 */
 	public static Vector2 polaireFromCart(Vector2 vec) {
-		float teta = (float) Math.atan2(vec.y, vec.x);
+		double teta = (double) Math.atan2(vec.y, vec.x);
 		int distance = (int) Math.hypot(vec.x, vec.y);
-		return new Vector2((float) Math.toDegrees(teta), (float) distance);
+		return new Vector2((double) Math.toDegrees(teta), (double) distance);
 	}
 	
 	/**
@@ -70,5 +72,12 @@ public class VUtils {
 		}
 		return false;
 	}
+        
+        public static Vector2 addPolars(double distance1, double angle1, double distance2, double angle2){
+            CartesianCoordinates cc1 = new PolarCoordinates(distance1, angle1).toCartesian();
+            CartesianCoordinates cc2 = new PolarCoordinates(distance2, angle2).toCartesian();
+            Vector2 v =new Vector2((float) cc1.getX(), (float) cc1.getY()).add(new Vector2((float) cc2.getX(), (float) cc2.getY()));
+            return new Vector2(v.len(),v.angle());
+        }
 	
 }

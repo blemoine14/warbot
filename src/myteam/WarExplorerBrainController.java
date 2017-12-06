@@ -47,9 +47,9 @@ public abstract class WarExplorerBrainController extends WarExplorerBrain {
                                 }
                             }
                             if(message.getMessage().equals(WarUtilMessage.IM_FINE)){
-                                //me.setDebugString("he is fine");
-                                me.dispo = true;
+                                me.setDebugString("he is fine");
                                 me.ctask = me.ptask.pop();
+                                me.dispo = true;
                             }
                         }
                     }
@@ -58,15 +58,17 @@ public abstract class WarExplorerBrainController extends WarExplorerBrain {
                     }
                 }
                 else{
-                    //me.setDebugString("no more food");
+                    me.setDebugString("no more food");
                     me.sendMessage(me.targetId, WarUtilMessage.QUIT_ENROLMENT,"");
+                    me.timeWaited = 0;
                     me.ctask = me.ptask.pop();
                     me.dispo = true;
                 }
             }
             else{
-                //me.setDebugString("time out");
+                me.setDebugString("time out");
                 me.sendMessage(me.targetId, WarUtilMessage.QUIT_ENROLMENT,"");
+                me.timeWaited = 0;
                 me.ctask = me.ptask.pop();
                 me.dispo = true;
             }
@@ -96,7 +98,7 @@ public abstract class WarExplorerBrainController extends WarExplorerBrain {
             //Si je ne vois pas de base
             if(basePercepts == null | basePercepts.size() == 0){
 
-                WarMessage m = me.getMessageFromBase();
+                WarMessage m = WarUtilAction.getMessageFromBase(me);
                 //Si j'ai un message de la base je vais vers elle
                 if(m != null)
                     me.setHeading(m.getAngle());
@@ -135,7 +137,7 @@ public abstract class WarExplorerBrainController extends WarExplorerBrain {
 
             //Si il y a de la nouriture
             if(foodPercept != null){
-                me.broadcastMessageToAll(WarUtilMessage.FOOD_FOUND, "");
+                me.broadcastMessageToAll(WarUtilMessage.FOOD_FOUND, WarUtilAction.serializeCoord(foodPercept));
                 if(foodPercept.getDistance() > WarResource.MAX_DISTANCE_TAKE){
                         me.setHeading(foodPercept.getAngle());
                 }else{
@@ -143,9 +145,9 @@ public abstract class WarExplorerBrainController extends WarExplorerBrain {
                 }
             }
             else{
-                WarMessage m = me.getMessageAboutFood();
-                if(m != null){
-                    me.setHeading(m.getAngle());
+                Vector2 v = WarUtilAction.getCoordFood(me);
+                if(v != null){
+                    me.setHeading(v.y);
                 }
             }
             if(me.isBlocked())
@@ -165,7 +167,7 @@ public abstract class WarExplorerBrainController extends WarExplorerBrain {
 @Override
     public String action() {
         
-        this.setDebugString(this.timeWaited+"/"+this.timeOut+" "+this.dispo);
+        //this.setDebugString(this.timeWaited+"/"+this.timeOut+" "+this.dispo);
 
         // Develop behaviour here
         String toReturn = this.reflexe();
@@ -213,23 +215,6 @@ public abstract class WarExplorerBrainController extends WarExplorerBrain {
     }
 
 
-    private WarMessage getMessageAboutFood() {
-        for (WarMessage m : getMessages()) {
-            if(m.getMessage().equals(WarUtilMessage.FOOD_FOUND))
-                return m;
-        }
-        return null;
-    }
-
-    private WarMessage getMessageFromBase() {
-        for (WarMessage m : getMessages()) {
-            if(m.getSenderType().equals(WarAgentType.WarBase))
-                return m;
-        }
-
-        broadcastMessageToAgentType(WarAgentType.WarBase, WarUtilMessage.SEARCHING_BASE, "");
-        return null;
-    }
     
     private void respondToOffer(WarMessage message){
         if(message.getMessage().equals(WarUtilMessage.NEED_SOMEONE)){

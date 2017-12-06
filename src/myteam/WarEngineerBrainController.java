@@ -79,6 +79,7 @@ public abstract class WarEngineerBrainController extends WarEngineerBrain {
 
                         if(!proposalSend){
                             me.broadcastMessageToAgentType(WarAgentType.WarExplorer, WarUtilMessage.NEED_SOMEONE, WarUtilMessage.NEED_HEALTH);
+                            me.TimeWaited = 0;
                             proposalSend = true;
                         }
                         else{
@@ -139,7 +140,7 @@ public abstract class WarEngineerBrainController extends WarEngineerBrain {
             
             
             
-            if(!(me.getHealth() < me.getMaxHealth() * 0.8)){
+            if(!(me.getHealth() <= me.getMaxHealth() * 0.8)){
                 //me.broadcastMessageToAll(WarUtilMessage.IM_FINE, "");
                 me.TimeWaited = 0;
                 proposalSend = false;
@@ -155,7 +156,7 @@ public abstract class WarEngineerBrainController extends WarEngineerBrain {
             //Si je ne vois pas de base
             if(basePercepts == null | basePercepts.size() == 0){
 
-                WarMessage m = me.getMessageFromBase();
+                WarMessage m = WarUtilAction.getMessageFromBase(me);
                 //Si j'ai un message de la base je vais vers elle
                 if(m != null)
                     me.setHeading(m.getAngle());
@@ -196,9 +197,9 @@ public abstract class WarEngineerBrainController extends WarEngineerBrain {
                 }
             }
             else{
-                WarMessage m = me.getMessageAboutFood();
-                if(m != null){
-                    me.setHeading(m.getAngle());
+                Vector2 v = WarUtilAction.getCoordFood(me);
+                if(v != null){
+                    me.setHeading(v.y);
                 }
             }
             if(me.isBlocked())
@@ -244,25 +245,6 @@ public abstract class WarEngineerBrainController extends WarEngineerBrain {
                 this.ctask = searchHelp;
             }
         }
-        return null;
-    }
-
-
-    private WarMessage getMessageAboutFood() {
-        for (WarMessage m : getMessages()) {
-            if(m.getMessage().equals(WarUtilMessage.FOOD_FOUND))
-                return m;
-        }
-        return null;
-    }
-    
-    private WarMessage getMessageFromBase() {
-        for (WarMessage m : getMessages()) {
-            if(m.getSenderType().equals(WarAgentType.WarBase))
-                return m;
-        }
-
-        broadcastMessageToAgentType(WarAgentType.WarBase, WarUtilMessage.SEARCHING_BASE, "");
         return null;
     }
 }

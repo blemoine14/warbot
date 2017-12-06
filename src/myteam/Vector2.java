@@ -27,10 +27,10 @@ import java.io.Serializable;
  * @author badlogicgames@gmail.com */
 public class Vector2 {
 
- 	static public final float PI = 3.1415927f;
- 	static public final float radiansToDegrees = 180f / PI;
+ 	static public final double PI = 3.1415927f;
+ 	static public final double radiansToDegrees = 180f / PI;
 
- 	static public final float degreesToRadians = PI / 180;
+ 	static public final double degreesToRadians = PI / 180;
 	// private static final long serialVersionUID = 913902788239530931L;
 
 	/** Static temporary vector. Use with care! Use only when sure other code will not also use this.
@@ -42,9 +42,9 @@ public class Vector2 {
 	public final static Vector2 Zero = new Vector2(0, 0);
 
 	/** the x-component of this vector **/
-	public float x;
+	public double x;
 	/** the y-component of this vector **/
-	public float y;
+	public double y;
 
 	/** Constructs a new vector at (0,0) */
 	public Vector2 () {
@@ -53,7 +53,7 @@ public class Vector2 {
 	/** Constructs a vector with the given components
 	 * @param x The x-component
 	 * @param y The y-component */
-	public Vector2 (float x, float y) {
+	public Vector2 (double x, double y) {
 		this.x = x;
 		this.y = y;
 	}
@@ -70,12 +70,12 @@ public class Vector2 {
 	}
 
 	/** @return The euclidian length */
-	public float len () {
-		return (float)Math.sqrt(x * x + y * y);
+	public double len () {
+		return (double)Math.sqrt(x * x + y * y);
 	}
 
 	/** @return The squared euclidian length */
-	public float len2 () {
+	public double len2 () {
 		return x * x + y * y;
 	}
 
@@ -92,7 +92,7 @@ public class Vector2 {
 	 * @param x The x-component
 	 * @param y The y-component
 	 * @return This vector for chaining */
-	public Vector2 set (float x, float y) {
+	public Vector2 set (double x, double y) {
 		this.x = x;
 		this.y = y;
 		return this;
@@ -110,7 +110,7 @@ public class Vector2 {
 	/** Normalizes this vector
 	 * @return This vector for chaining */
 	public Vector2 nor () {
-		float len = len();
+		double len = len();
 		if (len != 0) {
 			x /= len;
 			y /= len;
@@ -131,7 +131,7 @@ public class Vector2 {
 	 * @param x The x-component
 	 * @param y The y-component
 	 * @return This vector for chaining */
-	public Vector2 add (float x, float y) {
+	public Vector2 add (double x, double y) {
 		this.x += x;
 		this.y += y;
 		return this;
@@ -139,14 +139,14 @@ public class Vector2 {
 
 	/** @param v The other vector
 	 * @return The dot product between this and the other vector */
-	public float dot (Vector2 v) {
+	public double dot (Vector2 v) {
 		return x * v.x + y * v.y;
 	}
 
 	/** Multiplies this vector by a scalar
 	 * @param scalar The scalar
 	 * @return This vector for chaining */
-	public Vector2 mul (float scalar) {
+	public Vector2 mul (double scalar) {
 		x *= scalar;
 		y *= scalar;
 		return this;
@@ -154,35 +154,35 @@ public class Vector2 {
 
 	/** @param v The other vector
 	 * @return the distance between this and the other vector */
-	public float dst (Vector2 v) {
-		final float x_d = v.x - x;
-		final float y_d = v.y - y;
-		return (float)Math.sqrt(x_d * x_d + y_d * y_d);
+	public double dst (Vector2 v) {
+		final double x_d = v.x - x;
+		final double y_d = v.y - y;
+		return (double)Math.sqrt(x_d * x_d + y_d * y_d);
 	}
 
 	/** @param x The x-component of the other vector
 	 * @param y The y-component of the other vector
 	 * @return the distance between this and the other vector */
-	public float dst (float x, float y) {
-		final float x_d = x - this.x;
-		final float y_d = y - this.y;
-		return (float)Math.sqrt(x_d * x_d + y_d * y_d);
+	public double dst (double x, double y) {
+		final double x_d = x - this.x;
+		final double y_d = y - this.y;
+		return (double)Math.sqrt(x_d * x_d + y_d * y_d);
 	}
 
 //	/** @param v The other vector
 //	 * @return the squared distance between this and the other vector */
-//	public float dst2 (Vector2 v) {
-//		final float x_d = v.x - x;
-//		final float y_d = v.y - y;
+//	public double dst2 (Vector2 v) {
+//		final double x_d = v.x - x;
+//		final double y_d = v.y - y;
 //		return x_d * x_d + y_d * y_d;
 //	}
 //
 //	/** @param x The x-component of the other vector
 //	 * @param y The y-component of the other vector
 //	 * @return the squared distance between this and the other vector */
-//	public float dst2 (float x, float y) {
-//		final float x_d = x - this.x;
-//		final float y_d = y - this.y;
+//	public double dst2 (double x, double y) {
+//		final double x_d = x - this.x;
+//		final double y_d = y - this.y;
 //		return x_d * x_d + y_d * y_d;
 //	}
 
@@ -194,7 +194,7 @@ public class Vector2 {
 	 * @param x The x-component of the other vector
 	 * @param y The y-component of the other vector
 	 * @return This vector for chaining */
-	public Vector2 sub (float x, float y) {
+	public Vector2 sub (double x, double y) {
 		this.x -= x;
 		this.y -= y;
 		return this;
@@ -212,7 +212,7 @@ public class Vector2 {
 	/** Calculates the 2D cross product between this and the given vector.
 	 * @param v the other vector
 	 * @return the cross product */
-	public float crs (Vector2 v) {
+	public double crs (Vector2 v) {
 		return this.x * v.y - this.y * v.x;
 	}
 
@@ -220,14 +220,14 @@ public class Vector2 {
 	 * @param x the x-coordinate of the other vector
 	 * @param y the y-coordinate of the other vector
 	 * @return the cross product */
-	public float crs (float x, float y) {
+	public double crs (double x, double y) {
 		return this.x * y - this.y * x;
 	}
 
 	/** @return the angle in degrees of this vector (point) relative to the x-axis. Angles are counter-clockwise and between 0 and
 	 *         360. */
-	public float angle () {
-		float angle = (float)Math.atan2(y, x) * radiansToDegrees;
+	public double angle () {
+		double angle = (double)Math.atan2(y, x) * radiansToDegrees;
 		if (angle < 0) angle += 360;
 		return angle;
 	}
@@ -235,13 +235,13 @@ public class Vector2 {
 	/** Rotates the Vector2 by the given angle, counter-clockwise.
 	 * @param angle the angle in degrees
 	 * @return the */
-	public Vector2 rotate (float angle) {
-		float rad = angle * degreesToRadians;
-		float cos = (float)Math.cos(rad);
-		float sin = (float)Math.sin(rad);
+	public Vector2 rotate (double angle) {
+		double rad = angle * degreesToRadians;
+		double cos = (double)Math.cos(rad);
+		double sin = (double)Math.sin(rad);
 
-		float newX = this.x * cos - this.y * sin;
-		float newY = this.x * sin + this.y * cos;
+		double newX = this.x * cos - this.y * sin;
+		double newY = this.x * sin + this.y * cos;
 
 		this.x = newX;
 		this.y = newY;
@@ -255,7 +255,7 @@ public class Vector2 {
 	 * @param target The target vector
 	 * @param alpha The interpolation coefficient
 	 * @return This vector for chaining. */
-	public Vector2 lerp (Vector2 target, float alpha) {
+	public Vector2 lerp (Vector2 target, double alpha) {
 		Vector2 r = this.mul(1.0f - alpha);
 		r.add(target.tmp().mul(alpha));
 		return r;
@@ -265,8 +265,8 @@ public class Vector2 {
 //	public int hashCode() {
 //		final int prime = 31;
 //		int result = 1;
-//		result = prime * result + NumberUtils.floatToIntBits(x);
-//		result = prime * result + NumberUtils.floatToIntBits(y);
+//		result = prime * result + NumberUtils.doubleToIntBits(x);
+//		result = prime * result + NumberUtils.doubleToIntBits(y);
 //		return result;
 //	}
 
@@ -279,9 +279,9 @@ public class Vector2 {
 //		if (getClass() != obj.getClass())
 //			return false;
 //		Vector2 other = (Vector2) obj;
-//		if (NumberUtils.floatToIntBits(x) != NumberUtils.floatToIntBits(other.x))
+//		if (NumberUtils.doubleToIntBits(x) != NumberUtils.doubleToIntBits(other.x))
 //			return false;
-//		if (NumberUtils.floatToIntBits(y) != NumberUtils.floatToIntBits(other.y))
+//		if (NumberUtils.doubleToIntBits(y) != NumberUtils.doubleToIntBits(other.y))
 //			return false;
 //		return true;
 //	}

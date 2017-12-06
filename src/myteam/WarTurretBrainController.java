@@ -25,7 +25,7 @@ public abstract class WarTurretBrainController extends WarTurretBrain {
 
         //Si il y a de la nouriture
         if(foodPercept != null){
-            this.broadcastMessageToAll(WarUtilMessage.FOOD_FOUND, "");
+            this.broadcastMessageToAll(WarUtilMessage.FOOD_FOUND, WarUtilAction.serializeCoord(foodPercept));
         }
 
         _sight += 90;
