@@ -82,7 +82,6 @@ public class WarUtilAction {
     }
     
     public static Vector2 getCoordPolaireSend(WarBrain bc, WarMessage m){
-        bc.setDebugString(m.getContent()[0]+":"+m.getContent()[1]);
         Vector2 cibleFromSender = deserializeCoord(m.getContent());
         return VUtils.addPolars(m.getDistance(),m.getAngle(),cibleFromSender.x,cibleFromSender.y);
     }

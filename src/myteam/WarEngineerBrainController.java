@@ -76,42 +76,41 @@ public abstract class WarEngineerBrainController extends WarEngineerBrain {
             
             if(me.TimeWaited < me.timeout){
                 if(!proposalAccept){
+                    if(!proposalSend){
+                        me.broadcastMessageToAgentType(WarAgentType.WarExplorer, WarUtilMessage.NEED_SOMEONE, WarUtilMessage.NEED_HEALTH);
+                        me.TimeWaited = 0;
+                        proposalSend = true;
+                    }
+                    else{
+                        List<WarMessage> messages = me.getMessages();
+                        Double dMin = null;
+                        WarMessage explNear = null;
+                        List<WarMessage> answers = new ArrayList<>();
+                        for(WarMessage message : messages){
+                            if(message.getMessage().equals(WarUtilMessage.DISPO)){
+                                answers.add(message);
+                                if(dMin == null || dMin > message.getDistance()){
+                                    dMin = message.getDistance();
+                                    explNear = message;
+                                }
+                            }
+                        }
+                        if(explNear == null){
+                            //me.setDebugString("found no one");
+                            me.TimeWaited++;
 
-                        if(!proposalSend){
-                            me.broadcastMessageToAgentType(WarAgentType.WarExplorer, WarUtilMessage.NEED_SOMEONE, WarUtilMessage.NEED_HEALTH);
-                            me.TimeWaited = 0;
-                            proposalSend = true;
                         }
                         else{
-                            List<WarMessage> messages = me.getMessages();
-                            Double dMin = null;
-                            WarMessage explNear = null;
-                            List<WarMessage> answers = new ArrayList<>();
-                            for(WarMessage message : messages){
-                                if(message.getMessage().equals(WarUtilMessage.DISPO)){
-                                    answers.add(message);
-                                    if(dMin == null || dMin > message.getDistance()){
-                                        dMin = message.getDistance();
-                                        explNear = message;
-                                    }
-                                }
+                            //me.setDebugString("found someone");
+                            answers.remove(explNear);
+                            me.reply(explNear,WarUtilMessage.CHOOSE_YOU , WarUtilMessage.NEED_HEALTH);
+                            for(WarMessage message : answers){
+                                me.reply(message,WarUtilMessage.NOT_CHOOSE_YOU , "");
                             }
-                            if(explNear == null){
-                                //me.setDebugString("found no one");
-                                me.TimeWaited++;
-
-                            }
-                            else{
-                                //me.setDebugString("found someone");
-                                answers.remove(explNear);
-                                me.reply(explNear,WarUtilMessage.CHOOSE_YOU , WarUtilMessage.NEED_HEALTH);
-                                for(WarMessage message : answers){
-                                    me.reply(message,WarUtilMessage.NOT_CHOOSE_YOU , "");
-                                }
-                                me.TimeWaited = 0;
-                                proposalAccept = true;
-                            }
+                            me.TimeWaited = 0;
+                            proposalAccept = true;
                         }
+                    }
                 }
                 else{
                     List<WarMessage> messages = me.getMessages();
