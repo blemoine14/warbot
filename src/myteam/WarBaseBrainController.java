@@ -54,9 +54,8 @@ public abstract class WarBaseBrainController extends WarBaseBrain {
 
         for (WarAgentPercept percept : getPerceptsResources()) {
             if (percept.getType().equals(WarAgentType.WarFood))
-                broadcastMessageToAgentType(WarAgentType.WarExplorer, "I detected food",
-                        String.valueOf(percept.getAngle()),
-                        String.valueOf(percept.getDistance()));
+                broadcastMessageToAgentType(WarAgentType.WarExplorer, WarUtilMessage.FOOD_FOUND,
+                        WarUtilAction.serializeCoord(percept));
         }
 
         return WarBase.ACTION_IDLE;

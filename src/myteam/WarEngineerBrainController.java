@@ -14,23 +14,23 @@ import java.util.List;
 public abstract class WarEngineerBrainController extends WarEngineerBrain {
     
     WTask ctask;
-    int timeout = 5;
-    int TimeWaited = 0;
+    int timeOut = 30;
+    int timeWaited = 0;
 
-    public int getTimeout() {
-        return timeout;
+    public int getTimeOut() {
+        return timeOut;
     }
 
-    public void setTimeout(int timeout) {
-        this.timeout = timeout;
+    public void setTimeOut(int timeOut) {
+        this.timeOut = timeOut;
     }
 
     public int getTimeWaited() {
-        return TimeWaited;
+        return timeWaited;
     }
 
-    public void setTimeWaited(int timeTimeWaiteded) {
-        this.TimeWaited = TimeWaited;
+    public void setTimeWaited(int timetimeWaiteded) {
+        this.timeWaited = timeWaited;
     }
     
     
@@ -43,7 +43,7 @@ public abstract class WarEngineerBrainController extends WarEngineerBrain {
         String exec(WarBrain bc){
             WarEngineerBrainController me = (WarEngineerBrainController) bc;
             
-            //me.setDebugString("Building turret");
+//            me.setDebugString("Building turret");
             
             List<WarAgentPercept> percepts = me.getPerceptsAlliesByType(WarAgentType.WarTurret);
             if(percepts.isEmpty()){
@@ -66,72 +66,78 @@ public abstract class WarEngineerBrainController extends WarEngineerBrain {
             WarEngineerBrainController me = (WarEngineerBrainController) bc;
             
             
-            me.setDebugString("sending request");
-            if(proposalSend){
-                me.setDebugString("search someone ");
-            }
-            if(proposalAccept){
-                me.setDebugString("found someone");
-            }
+//            me.setDebugString("sending request");
+//            if(proposalSend){
+//                me.setDebugString("search someone ");
+//            }
+//            if(proposalAccept){
+//                me.setDebugString("found someone");
+//            }
             
-            if(me.TimeWaited < me.timeout){
+            if(me.timeWaited < me.timeOut){
                 if(!proposalAccept){
                     if(!proposalSend){
                         me.broadcastMessageToAgentType(WarAgentType.WarExplorer, WarUtilMessage.NEED_SOMEONE, WarUtilMessage.NEED_HEALTH);
-                        me.TimeWaited = 0;
+                        me.timeWaited = 0;
                         proposalSend = true;
                     }
                     else{
                         List<WarMessage> messages = me.getMessages();
-                        Double dMin = null;
+                        double dMin = 0;
                         WarMessage explNear = null;
                         List<WarMessage> answers = new ArrayList<>();
                         for(WarMessage message : messages){
                             if(message.getMessage().equals(WarUtilMessage.DISPO)){
                                 answers.add(message);
-                                if(dMin == null || dMin > message.getDistance()){
+                                if(explNear == null || dMin > message.getDistance()){
                                     dMin = message.getDistance();
                                     explNear = message;
                                 }
                             }
                         }
                         if(explNear == null){
-                            //me.setDebugString("found no one");
-                            me.TimeWaited++;
+                            me.setDebugString("waiting accept "+me.timeWaited+"/"+me.timeOut);
+                            me.timeWaited++;
 
                         }
                         else{
-                            //me.setDebugString("found someone");
+//                            me.setDebugString("found someone");
                             answers.remove(explNear);
-                            me.reply(explNear,WarUtilMessage.CHOOSE_YOU , WarUtilMessage.NEED_HEALTH);
+                            me.sendMessage(explNear.getSenderID(),WarUtilMessage.CHOOSE_YOU , WarUtilMessage.NEED_HEALTH);
                             for(WarMessage message : answers){
-                                me.reply(message,WarUtilMessage.NOT_CHOOSE_YOU , "");
+                                me.sendMessage(message.getSenderID(),WarUtilMessage.NOT_CHOOSE_YOU , "");
                             }
-                            me.TimeWaited = 0;
+                            me.timeWaited = 0;
                             proposalAccept = true;
                         }
                     }
                 }
                 else{
+                    me.setDebugString("waiting position "+me.timeWaited+"/"+me.timeOut);
+                    boolean answer = false;
                     List<WarMessage> messages = me.getMessages();
                     for(WarMessage message : messages){
                         if(message.getMessage().equals(WarUtilMessage.WHERE_ARE_YOU)){
-                            me.reply(message, WarUtilMessage.IM_HERE, "");
-                            me.TimeWaited = 0;
+                            answer = true;
+                            me.sendMessage(message.getSenderID(), WarUtilMessage.IM_HERE, "");
+                            me.timeWaited = 0;
                         }
                         if(message.getMessage().equals(WarUtilMessage.QUIT_ENROLMENT)){
-                            me.setDebugString("someone quit");
-                            me.TimeWaited = 0;
+//                            me.setDebugString("someone quit");
+                            answer = true;
+                            me.timeWaited = 0;
                             proposalSend = false;
                             proposalAccept = false;
                         }
                     }
-                    me.TimeWaited++;
+                    if(!answer){
+                        me.timeWaited++;
+                    }
                 }
             }
             else{
-                me.setDebugString("time out");
-                me.TimeWaited = 0;
+//                me.setDebugString("time out");
+                me.timeWaited = 0;
                 proposalSend = false;
                 proposalAccept = false;
             }
@@ -140,8 +146,9 @@ public abstract class WarEngineerBrainController extends WarEngineerBrain {
             
             
             if(!(me.getHealth() <= me.getMaxHealth() * 0.8)){
-                //me.broadcastMessageToAll(WarUtilMessage.IM_FINE, "");
-                me.TimeWaited = 0;
+                me.broadcastMessageToAll(WarUtilMessage.IM_FINE, "");
+                me.setHeading(me.getHeading()+180);
+                me.timeWaited = 0;
                 proposalSend = false;
                 proposalAccept = false;
                 me.ctask = getFoodTask;
@@ -181,8 +188,7 @@ public abstract class WarEngineerBrainController extends WarEngineerBrain {
         String exec(WarBrain bc){
             WarEngineerBrainController me = (WarEngineerBrainController) bc;
 
-            //me.setDebugStringColor(Color.BLACK);
-            //me.setDebugString("Searching food");
+//            me.setDebugString("Searching food");
 
             WarAgentPercept foodPercept = WarUtilAction.getperceptFood(me);
 
@@ -216,7 +222,8 @@ public abstract class WarEngineerBrainController extends WarEngineerBrain {
     @Override
     public String action() {
         
-        
+//        this.setDebugString(this.timeWaited+"/"+this.timeOut);
+
 
         // Develop behaviour here
         String toReturn = this.reflexe();
