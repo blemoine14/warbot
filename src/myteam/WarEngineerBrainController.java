@@ -14,32 +14,18 @@ import java.util.List;
 public abstract class WarEngineerBrainController extends WarEngineerBrain {
     
     WTask ctask;
-    int timeOut = 30;
-    int timeWaited = 0;
-
-    public int getTimeOut() {
-        return timeOut;
-    }
-
-    public void setTimeOut(int timeOut) {
-        this.timeOut = timeOut;
-    }
-
-    public int getTimeWaited() {
-        return timeWaited;
-    }
-
-    public void setTimeWaited(int timetimeWaiteded) {
-        this.timeWaited = timeWaited;
-    }
+    private int timeOut = 30;
+    private int timeWaited = 0;
     
     
 
-    static WTask handleMsgs = new WTask(){ 
+    WTask handleMsgs = new WTask(){ 
+            @Override
             String exec(WarBrain bc){return "";}
     };
     
-    static WTask buildTurret = new WTask(){ 
+    WTask buildTurret = new WTask(){ 
+        @Override
         String exec(WarBrain bc){
             WarEngineerBrainController me = (WarEngineerBrainController) bc;
             
@@ -48,7 +34,7 @@ public abstract class WarEngineerBrainController extends WarEngineerBrain {
             List<WarAgentPercept> percepts = me.getPerceptsAlliesByType(WarAgentType.WarTurret);
             if(percepts.isEmpty()){
                 me.setNextBuildingToBuild(WarAgentType.WarTurret);
-                me.ctask = searchHelp;
+                me.ctask = me.getFoodTask;
                 return me.build();
             }
             else{
@@ -58,10 +44,11 @@ public abstract class WarEngineerBrainController extends WarEngineerBrain {
         }
     };
     
-    static WTask searchHelp = new WTask(){
+    WTask searchHelp = new WTask(){
         boolean proposalSend = false;
         boolean proposalAccept = false;
-            
+        
+        @Override
         String exec(WarBrain bc){
             WarEngineerBrainController me = (WarEngineerBrainController) bc;
             
@@ -77,7 +64,7 @@ public abstract class WarEngineerBrainController extends WarEngineerBrain {
             if(me.timeWaited < me.timeOut){
                 if(!proposalAccept){
                     if(!proposalSend){
-                        me.broadcastMessageToAgentType(WarAgentType.WarExplorer, WarUtilMessage.NEED_SOMEONE, WarUtilMessage.NEED_HEALTH);
+                        me.broadcastMessageToAll(WarUtilMessage.NEED_SOMEONE, WarUtilMessage.NEED_HEALTH);
                         me.timeWaited = 0;
                         proposalSend = true;
                     }
@@ -151,7 +138,7 @@ public abstract class WarEngineerBrainController extends WarEngineerBrain {
                 me.timeWaited = 0;
                 proposalSend = false;
                 proposalAccept = false;
-                me.ctask = getFoodTask;
+                me.ctask = me.getFoodTask;
                 return me.idle();
             }
             
@@ -184,7 +171,7 @@ public abstract class WarEngineerBrainController extends WarEngineerBrain {
         }
     };
     
-    static WTask getFoodTask = new WTask(){
+    WTask getFoodTask = new WTask(){
         String exec(WarBrain bc){
             WarEngineerBrainController me = (WarEngineerBrainController) bc;
 
@@ -197,7 +184,7 @@ public abstract class WarEngineerBrainController extends WarEngineerBrain {
                 if(foodPercept.getDistance() > WarResource.MAX_DISTANCE_TAKE){
                         me.setHeading(foodPercept.getAngle());
                 }else{
-                        me.ctask = buildTurret;
+                        me.ctask = me.buildTurret;
                         return me.take();
                 }
             }
@@ -216,7 +203,7 @@ public abstract class WarEngineerBrainController extends WarEngineerBrain {
 
     public WarEngineerBrainController() {
         super();
-        this.ctask = getFoodTask;
+        this.ctask = this.getFoodTask;
     }
 
     @Override
@@ -248,7 +235,7 @@ public abstract class WarEngineerBrainController extends WarEngineerBrain {
                 return ACTION_EAT;
             }
             else{
-                this.ctask = searchHelp;
+                this.ctask = this.searchHelp;
             }
         }
         return null;
