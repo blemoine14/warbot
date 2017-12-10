@@ -44,132 +44,111 @@ public abstract class WarEngineerBrainController extends WarEngineerBrain {
         }
     };
     
-    WTask searchHelp = new WTask(){
-        boolean proposalSend = false;
-        boolean proposalAccept = false;
-        
+    WTask askForHelp = new WTask(WarUtilMessage.NEED_HEALTH){
         @Override
         String exec(WarBrain bc){
             WarEngineerBrainController me = (WarEngineerBrainController) bc;
             
+            me.setDebugString("sending request : "+this.message);
             
-//            me.setDebugString("sending request");
-//            if(proposalSend){
-//                me.setDebugString("search someone ");
-//            }
-//            if(proposalAccept){
-//                me.setDebugString("found someone");
-//            }
+            me.broadcastMessageToAll(WarUtilMessage.NEED_SOMEONE, this.message);
+            me.timeWaited = 0;
+            me.ctask = me.waitAnswerToRequest;
+            
+            return me.returnToNearestBase();
+        }
+    };
+    
+    WTask waitAnswerToRequest = new WTask(){
+        @Override
+        String exec(WarBrain bc) {
+            WarEngineerBrainController me = (WarEngineerBrainController) bc;
+            
+            me.setDebugString("waiting for answer");
             
             if(me.timeWaited < me.timeOut){
-                if(!proposalAccept){
-                    if(!proposalSend){
-                        me.broadcastMessageToAll(WarUtilMessage.NEED_SOMEONE, WarUtilMessage.NEED_HEALTH);
-                        me.timeWaited = 0;
-                        proposalSend = true;
-                    }
-                    else{
-                        List<WarMessage> messages = me.getMessages();
-                        double dMin = 0;
-                        WarMessage explNear = null;
-                        List<WarMessage> answers = new ArrayList<>();
-                        for(WarMessage message : messages){
-                            if(message.getMessage().equals(WarUtilMessage.DISPO)){
-                                answers.add(message);
-                                if(explNear == null || dMin > message.getDistance()){
-                                    dMin = message.getDistance();
-                                    explNear = message;
-                                }
-                            }
-                        }
-                        if(explNear == null){
-                            me.setDebugString("waiting accept "+me.timeWaited+"/"+me.timeOut);
-                            me.timeWaited++;
-
-                        }
-                        else{
-//                            me.setDebugString("found someone");
-                            answers.remove(explNear);
-                            me.sendMessage(explNear.getSenderID(),WarUtilMessage.CHOOSE_YOU , WarUtilMessage.NEED_HEALTH);
-                            for(WarMessage message : answers){
-                                me.sendMessage(message.getSenderID(),WarUtilMessage.NOT_CHOOSE_YOU , "");
-                            }
-                            me.timeWaited = 0;
-                            proposalAccept = true;
+                List<WarMessage> messages = me.getMessages();
+                double dMin = 0;
+                WarMessage explNear = null;
+                List<WarMessage> answers = new ArrayList<>();
+                for(WarMessage message : messages){
+                    if(message.getMessage().equals(WarUtilMessage.DISPO)){
+                        answers.add(message);
+                        if(explNear == null || dMin > message.getDistance()){
+                            dMin = message.getDistance();
+                            explNear = message;
                         }
                     }
                 }
+                //si personne ne repond
+                if(explNear == null){
+                    me.timeWaited++;
+                }
                 else{
-                    me.setDebugString("waiting position "+me.timeWaited+"/"+me.timeOut);
-                    boolean answer = false;
-                    List<WarMessage> messages = me.getMessages();
-                    for(WarMessage message : messages){
-                        if(message.getMessage().equals(WarUtilMessage.WHERE_ARE_YOU)){
-                            answer = true;
-                            me.sendMessage(message.getSenderID(), WarUtilMessage.IM_HERE, "");
-                            me.timeWaited = 0;
-                        }
-                        if(message.getMessage().equals(WarUtilMessage.QUIT_ENROLMENT)){
-//                            me.setDebugString("someone quit");
-                            answer = true;
-                            me.timeWaited = 0;
-                            proposalSend = false;
-                            proposalAccept = false;
-                        }
+                    //choisi le plus proche
+                    answers.remove(explNear);
+                    me.sendMessage(explNear.getSenderID(),WarUtilMessage.CHOOSE_YOU , WarUtilMessage.NEED_HEALTH);
+                    //informe les autres qu'ils ne sont pas choisis
+                    for(WarMessage message : answers){
+                        me.sendMessage(message.getSenderID(),WarUtilMessage.NOT_CHOOSE_YOU , "");
                     }
-                    if(!answer){
-                        me.timeWaited++;
-                    }
+                    me.timeWaited = 0;
+                    me.ctask = me.sendMyPosition;
                 }
             }
             else{
-//                me.setDebugString("time out");
                 me.timeWaited = 0;
-                proposalSend = false;
-                proposalAccept = false;
+                me.ctask = me.askForHelp;
             }
             
+            return me.returnToNearestBase();
+        }
+        
+    };
+    
+     WTask sendMyPosition = new WTask(){
+        @Override
+        String exec(WarBrain bc) {
+            WarEngineerBrainController me = (WarEngineerBrainController) bc;
             
+            me.setDebugString("sending position");
             
+            if(me.timeWaited < me.timeOut){
+                boolean answer = false;
+                List<WarMessage> messages = me.getMessages();
+                for(WarMessage message : messages){
+                    if(message.getMessage().equals(WarUtilMessage.WHERE_ARE_YOU)){
+                        answer = true;
+                        me.sendMessage(message.getSenderID(), WarUtilMessage.IM_HERE, "");
+                        me.timeWaited = 0;
+                    }
+                    if(message.getMessage().equals(WarUtilMessage.QUIT_ENROLMENT)){
+                        answer = true;
+                        me.timeWaited = 0;
+                        me.ctask = me.askForHelp;
+                    }
+                }
+                if(!answer){
+                    me.timeWaited++;
+                }
+            }
+            else{
+                me.timeWaited = 0;
+                me.ctask = me.askForHelp;
+            }
             
             if(!(me.getHealth() <= me.getMaxHealth() * 0.8)){
                 me.broadcastMessageToAll(WarUtilMessage.IM_FINE, "");
                 me.setHeading(me.getHeading()+180);
                 me.timeWaited = 0;
-                proposalSend = false;
-                proposalAccept = false;
                 me.ctask = me.getFoodTask;
-                return me.idle();
+                return me.move();
             }
             
-            
-
-            List<WarAgentPercept> basePercepts = me.getPerceptsAlliesByType(WarAgentType.WarBase);
-
-            //Si je ne vois pas de base
-            if(basePercepts == null | basePercepts.size() == 0){
-
-                WarMessage m = WarUtilAction.getMessageFromBase(me);
-                //Si j'ai un message de la base je vais vers elle
-                if(m != null)
-                    me.setHeading(m.getAngle());
-            }else{//si je vois une base
-                WarAgentPercept base = basePercepts.get(0);
-
-                if(base.getDistance() > MovableWarAgent.MAX_DISTANCE_GIVE){
-                    me.setHeading(base.getAngle());
-                    return me.move();
-                }else{
-                    return me.idle();
-                }
-            }
-            
-            if(me.isBlocked())
-                me.setRandomHeading();
-            
-            return me.move();
+            return me.returnToNearestBase();
         }
-    };
+     };
+            
     
     WTask getFoodTask = new WTask(){
         String exec(WarBrain bc){
@@ -235,9 +214,37 @@ public abstract class WarEngineerBrainController extends WarEngineerBrain {
                 return ACTION_EAT;
             }
             else{
-                this.ctask = this.searchHelp;
+                this.ctask = this.askForHelp;
             }
         }
         return null;
+    }
+    
+    private String returnToNearestBase(){
+        List<WarAgentPercept> basePercepts = this.getPerceptsAlliesByType(WarAgentType.WarBase);
+
+        //Si je ne vois pas de base
+        if(basePercepts == null | basePercepts.isEmpty()){
+
+            WarMessage m = WarUtilAction.getMessageFromBase(this);
+            //Si j'ai un message de la base je vais vers elle
+            if(m != null)
+                this.setHeading(m.getAngle());
+        }else{
+            //si je vois une base
+            WarAgentPercept base = basePercepts.get(0);
+
+            if(base.getDistance() > MovableWarAgent.MAX_DISTANCE_GIVE){
+                this.setHeading(base.getAngle());
+                return this.move();
+            }else{
+                return this.idle();
+            }
+        }
+        
+        if(this.isBlocked())
+                this.setRandomHeading();
+            
+        return this.move();
     }
 }
