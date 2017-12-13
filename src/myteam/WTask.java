@@ -13,6 +13,13 @@ import edu.warbot.brains.WarBrain;
  */
 public abstract class WTask {
 	WarBrain myBrain;
+        String message;
+        
+        public WTask(){}
+        
+        public WTask(String message){
+            this.message = message;
+        }
 	
 	abstract String exec(WarBrain bc);
 }

@@ -45,15 +45,25 @@ public abstract class WarEngineerBrainController extends WarEngineerBrain implem
         }
     };
     
-    WTask searchHelp = new WTask(){
-        boolean proposalSend = false;
-        boolean proposalAccept = false;
-        
+    WTask askForHelp = new WTask(WarUtilMessage.NEED_HEALTH){
         @Override
         String exec(WarBrain bc){
             WarEngineerBrainController me = (WarEngineerBrainController) bc;
             
+            me.setDebugString("sending request : "+this.message);
             
+            me.broadcastMessageToAll(WarUtilMessage.NEED_SOMEONE, this.message);
+            me.timeWaited = 0;
+            me.ctask = me.waitAnswerToRequest;
+            
+            return me.returnToNearestBase();
+        }
+    };
+    
+    WTask waitAnswerToRequest = new WTask(){
+        @Override
+        String exec(WarBrain bc) {
+            WarEngineerBrainController me = (WarEngineerBrainController) bc;
             me.setDebugString("sending request : "+WarUtilMessage.NEED_HEALTH);
             if(proposalSend){
                 me.setDebugString("search someone");
@@ -96,8 +106,13 @@ public abstract class WarEngineerBrainController extends WarEngineerBrain implem
                             }
                             me.timeWaited = 0;
                             proposalAccept = true;
+
                         }
                     }
+                }
+                //si personne ne repond
+                if(explNear == null){
+                    me.timeWaited++;
                 }
                 else{
                     boolean answer = false;
@@ -117,24 +132,57 @@ public abstract class WarEngineerBrainController extends WarEngineerBrain implem
                     }
                     if(!answer){
                         me.timeWaited++;
+
                     }
+                    me.timeWaited = 0;
+                    me.ctask = me.sendMyPosition;
                 }
             }
             else{
                 me.timeWaited = 0;
-                proposalSend = false;
-                proposalAccept = false;
+                me.ctask = me.askForHelp;
             }
             
+            return me.returnToNearestBase();
+        }
+        
+    };
+    
+     WTask sendMyPosition = new WTask(){
+        @Override
+        String exec(WarBrain bc) {
+            WarEngineerBrainController me = (WarEngineerBrainController) bc;
             
+            me.setDebugString("sending position");
             
+            if(me.timeWaited < me.timeOut){
+                boolean answer = false;
+                List<WarMessage> messages = me.getMessages();
+                for(WarMessage message : messages){
+                    if(message.getMessage().equals(WarUtilMessage.WHERE_ARE_YOU)){
+                        answer = true;
+                        me.sendMessage(message.getSenderID(), WarUtilMessage.IM_HERE, "");
+                        me.timeWaited = 0;
+                    }
+                    if(message.getMessage().equals(WarUtilMessage.QUIT_ENROLMENT)){
+                        answer = true;
+                        me.timeWaited = 0;
+                        me.ctask = me.askForHelp;
+                    }
+                }
+                if(!answer){
+                    me.timeWaited++;
+                }
+            }
+            else{
+                me.timeWaited = 0;
+                me.ctask = me.askForHelp;
+            }
             
             if(!(me.getHealth() <= me.getMaxHealth() * 0.8)){
                 me.broadcastMessageToAll(WarUtilMessage.IM_FINE, "");
                 me.setHeading(me.getHeading()+180);
                 me.timeWaited = 0;
-                proposalSend = false;
-                proposalAccept = false;
                 me.ctask = me.getFoodTask;
                 return me.idle();
             }
@@ -159,14 +207,13 @@ public abstract class WarEngineerBrainController extends WarEngineerBrain implem
                 }else{
                     return me.idle();
                 }
+
             }
             
-            if(me.isBlocked())
-                me.setRandomHeading();
-            
-            return me.move();
+            return me.returnToNearestBase();
         }
-    };
+     };
+            
     
     WTask getFoodTask = new WTask(){
         String exec(WarBrain bc){
@@ -232,7 +279,7 @@ public abstract class WarEngineerBrainController extends WarEngineerBrain implem
                 return ACTION_EAT;
             }
             else{
-                this.ctask = this.searchHelp;
+                this.ctask = this.askForHelp;
             }
         }
         return null;
@@ -241,5 +288,6 @@ public abstract class WarEngineerBrainController extends WarEngineerBrain implem
     @Override
     public WarAgentType getType() {
         return WarAgentType.WarEngineer;
+
     }
 }
