@@ -8,10 +8,11 @@ import edu.warbot.agents.percepts.WarAgentPercept;
 import edu.warbot.brains.WarBrain;
 import edu.warbot.brains.brains.WarEngineerBrain;
 import edu.warbot.communications.WarMessage;
+import edu.warbot.tools.geometry.PolarCoordinates;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class WarEngineerBrainController extends WarEngineerBrain {
+public abstract class WarEngineerBrainController extends WarEngineerBrain implements IntWarAgentConfig{
     
     WTask ctask;
     private int timeOut = 30;
@@ -29,7 +30,7 @@ public abstract class WarEngineerBrainController extends WarEngineerBrain {
         String exec(WarBrain bc){
             WarEngineerBrainController me = (WarEngineerBrainController) bc;
             
-//            me.setDebugString("Building turret");
+            me.setDebugString("Building turret");
             
             List<WarAgentPercept> percepts = me.getPerceptsAlliesByType(WarAgentType.WarTurret);
             if(percepts.isEmpty()){
@@ -53,13 +54,13 @@ public abstract class WarEngineerBrainController extends WarEngineerBrain {
             WarEngineerBrainController me = (WarEngineerBrainController) bc;
             
             
-//            me.setDebugString("sending request");
-//            if(proposalSend){
-//                me.setDebugString("search someone ");
-//            }
-//            if(proposalAccept){
-//                me.setDebugString("found someone");
-//            }
+            me.setDebugString("sending request : "+WarUtilMessage.NEED_HEALTH);
+            if(proposalSend){
+                me.setDebugString("search someone");
+            }
+            if(proposalAccept){
+                me.setDebugString("found someone");
+            }
             
             if(me.timeWaited < me.timeOut){
                 if(!proposalAccept){
@@ -83,7 +84,6 @@ public abstract class WarEngineerBrainController extends WarEngineerBrain {
                             }
                         }
                         if(explNear == null){
-                            me.setDebugString("waiting accept "+me.timeWaited+"/"+me.timeOut);
                             me.timeWaited++;
 
                         }
@@ -100,7 +100,6 @@ public abstract class WarEngineerBrainController extends WarEngineerBrain {
                     }
                 }
                 else{
-                    me.setDebugString("waiting position "+me.timeWaited+"/"+me.timeOut);
                     boolean answer = false;
                     List<WarMessage> messages = me.getMessages();
                     for(WarMessage message : messages){
@@ -110,7 +109,6 @@ public abstract class WarEngineerBrainController extends WarEngineerBrain {
                             me.timeWaited = 0;
                         }
                         if(message.getMessage().equals(WarUtilMessage.QUIT_ENROLMENT)){
-//                            me.setDebugString("someone quit");
                             answer = true;
                             me.timeWaited = 0;
                             proposalSend = false;
@@ -123,7 +121,6 @@ public abstract class WarEngineerBrainController extends WarEngineerBrain {
                 }
             }
             else{
-//                me.setDebugString("time out");
                 me.timeWaited = 0;
                 proposalSend = false;
                 proposalAccept = false;
@@ -147,7 +144,7 @@ public abstract class WarEngineerBrainController extends WarEngineerBrain {
             List<WarAgentPercept> basePercepts = me.getPerceptsAlliesByType(WarAgentType.WarBase);
 
             //Si je ne vois pas de base
-            if(basePercepts == null | basePercepts.size() == 0){
+            if(basePercepts == null | basePercepts.isEmpty()){
 
                 WarMessage m = WarUtilAction.getMessageFromBase(me);
                 //Si j'ai un message de la base je vais vers elle
@@ -189,9 +186,9 @@ public abstract class WarEngineerBrainController extends WarEngineerBrain {
                 }
             }
             else{
-                Vector2 v = WarUtilAction.getCoordFood(me);
+                PolarCoordinates v = WarUtilAction.getCoordFood(me);
                 if(v != null){
-                    me.setHeading(v.y);
+                    me.setHeading(v.getAngle());
                 }
             }
             if(me.isBlocked())
@@ -239,5 +236,10 @@ public abstract class WarEngineerBrainController extends WarEngineerBrain {
             }
         }
         return null;
+    }
+    
+    @Override
+    public WarAgentType getType() {
+        return WarAgentType.WarEngineer;
     }
 }

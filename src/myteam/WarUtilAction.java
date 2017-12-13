@@ -9,6 +9,7 @@ import edu.warbot.agents.enums.WarAgentType;
 import edu.warbot.agents.percepts.WarAgentPercept;
 import edu.warbot.brains.WarBrain;
 import edu.warbot.communications.WarMessage;
+import edu.warbot.tools.geometry.PolarCoordinates;
 import java.util.List;
 import java.util.Random;
 
@@ -43,12 +44,12 @@ public class WarUtilAction {
         bc.setHeading(randomGenerator.nextInt(20));
     }
     
-    public static Vector2 getCoordFood(WarBrain bc) {
-        Vector2 food = null;
+    public static PolarCoordinates getCoordFood(WarBrain bc) {
+        PolarCoordinates food = null;
         for (WarMessage m : bc.getMessages()) {
             if(m.getMessage().equals(WarUtilMessage.FOOD_FOUND)){
-                Vector2 vfood = getCoordPolaireSend(bc, m);
-                if(food == null || food.x > vfood.x){
+                PolarCoordinates vfood = bc.getIndirectPositionOfAgentWithMessage(m);
+                if(food == null || food.getDistance() > vfood.getDistance()){
                     food = vfood;
                 }
             }
@@ -69,20 +70,5 @@ public class WarUtilAction {
             bc.broadcastMessageToAgentType(WarAgentType.WarBase, WarUtilMessage.SEARCHING_BASE, "");
         }
         return base;
-    }
-    
-    public static String[] serializeCoord(WarAgentPercept p){
-        String[] res = {Double.toString(p.getDistance()),Double.toString(p.getAngle())};
-        return res;
-    }
-    
-    public static Vector2 deserializeCoord(String[] s){
-        Vector2 res = new Vector2(Float.parseFloat(s[0]),Float.parseFloat(s[1]));
-        return res;
-    }
-    
-    public static Vector2 getCoordPolaireSend(WarBrain bc, WarMessage m){
-        Vector2 cibleFromSender = deserializeCoord(m.getContent());
-        return VUtils.addPolars(m.getDistance(),m.getAngle(),cibleFromSender.x,cibleFromSender.y);
     }
 }
