@@ -1,13 +1,13 @@
 package myteam;
 
 import edu.warbot.agents.agents.WarExplorer;
+import edu.warbot.agents.enums.WarAgentType;
 import edu.warbot.agents.percepts.WarAgentPercept;
 import edu.warbot.brains.brains.WarKamikazeBrain;
 
-import java.util.ArrayList;
 import java.util.List;
 
-public abstract class WarKamikazeBrainController extends WarKamikazeBrain {
+public abstract class WarKamikazeBrainController extends WarKamikazeBrain implements IntWarAgentConfig{
 
     public WarKamikazeBrainController() {
         super();
@@ -32,5 +32,10 @@ public abstract class WarKamikazeBrainController extends WarKamikazeBrain {
         if (isBlocked())
             setRandomHeading();
         return WarExplorer.ACTION_MOVE;
+    }
+    
+    @Override
+    public WarAgentType getType() {
+        return WarAgentType.WarKamikaze;
     }
 }

@@ -73,11 +73,6 @@ public class VUtils {
 		return false;
 	}
         
-        public static Vector2 addPolars(double distance1, double angle1, double distance2, double angle2){
-            CartesianCoordinates cc1 = new PolarCoordinates(distance1, angle1).toCartesian();
-            CartesianCoordinates cc2 = new PolarCoordinates(distance2, angle2).toCartesian();
-            Vector2 v =new Vector2((float) cc1.getX(), (float) cc1.getY()).add(new Vector2((float) cc2.getX(), (float) cc2.getY()));
-            return new Vector2(v.len(),v.angle());
-        }
+        
 	
 }

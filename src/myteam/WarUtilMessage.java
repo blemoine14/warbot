@@ -5,6 +5,8 @@
  */
 package myteam;
 
+import edu.warbot.agents.percepts.WarAgentPercept;
+
 /**
  *
  * @author blemoine02
@@ -24,4 +26,13 @@ public class WarUtilMessage {
     public static final String WHERE_ARE_YOU = "where are you ?";
     public static final String IM_HERE = "i'm here";
     public static final String IM_FINE = "i'm fine";
+    public static final String BASE_UNDER_ATTACK = "base is under attack";
+    public static final String ROCKET_LANCHER_HERE = "rocket launcher here";
+    public static final String ASK_REPORT = "state your status";
+    public static final String REPORTING = "this is my status";
+    
+    public static String[] serializeCoord(WarAgentPercept p){
+        String[] res = {Double.toString(p.getDistance()),Double.toString(p.getAngle())};
+        return res;
+    }
 }
